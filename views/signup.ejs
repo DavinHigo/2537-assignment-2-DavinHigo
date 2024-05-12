@@ -1,7 +1,15 @@
-<h1>Sign Up</h1>
-<form action="/signup" method="POST">
-    <input type="text" name="username" placeholder="Username"><br>
-    <input type="email" name="email" placeholder="Email"><br>
-    <input type="password" name="password" placeholder="Password"><br>
-    <button type="submit">Sign Up</button>
-</form>
+<%- include("templates/header") %>
+
+    <div class="px-4 py-5 my-5 text-center">
+        <h1>Sign Up</h1><br>
+        <form action="/signup" method="POST">
+            <input type="text" name="username" placeholder="Username" class="form-control"><br>
+            <input type="email" name="email" placeholder="Email" class="form-control"><br>
+            <input type="password" name="password" placeholder="Password" class="form-control"><br><br>
+
+                
+
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Sign Up</button>
+        </form>
+    </div>
+    <%- include("templates/footer") %>

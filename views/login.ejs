@@ -1,6 +1,11 @@
-<h1>Login</h1>
+    <%- include("templates/header") %>
+
+    <div class="px-4 py-5 my-5 text-center">
+<h1>Login</h1><br>
 <form action="/login" method="POST">
-    <input type="email" name="email" placeholder="Email">
-    <input type="password" name="password" placeholder="Password">
-    <button type="submit">Login</button>
+    <input type="email" name="email" placeholder="Email" class="form-control"><br>
+    <input type="password" name="password" placeholder="Password" class="form-control"><br><br>
+    <button type="submit" class="w-100 btn btn-lg btn-primary">Login</button>
 </form>
+</div>
+    <%- include("templates/footer") %>

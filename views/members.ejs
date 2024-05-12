@@ -1,5 +1,8 @@
- <%- include("templates/header") %>
-<h1>Hello, <%= username %>.</h1>
-    <%- include("templates/ducks") %>
-<br><button onclick="window.location='/logout'">Logout</button>
- <%- include("templates/footer") %>
+<%- include("templates/header") %>
+    <div class="px-4 py-5 my-5 text-center">
+        <h1>Hello, <%= username %>.</h1>
+        <%- include("templates/ducks") %>
+            <br><button onclick="window.location='/logout'"
+                class="btn btn-outline-secondary btn-lg px-4">Logout</button>
+    </div>
+    <%- include("templates/footer") %>

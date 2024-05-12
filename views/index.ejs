@@ -1,10 +1,19 @@
-<% if (user) { %>
-  <!-- User is logged in -->
-  <p>Hello, <%= user.username %>!</p>
-  <button onclick="window.location='/members'">Members Area</button>
-  <button onclick="window.location='/logout'">Logout</button>
-  <% } else { %>
-    <!-- User is not logged in -->
-    <button onclick="window.location='/signup'">Sign Up</button>
-    <button onclick="window.location='/login'">Login</button>
-    <% } %>
+<%- include("templates/header") %>
+
+
+  <div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold">Comp 2537 Assignments</h1>
+    <br>
+    <% if (user) { %>
+      <!-- User is logged in -->
+      <h1>Hello, <%= user.username %>!</h1>
+      <button onclick="window.location='/members'" class="btn btn-primary btn-lg px-4 gap-3">Members Area</button>
+      <button onclick="window.location='/logout'" class="btn btn-outline-secondary btn-lg px-4">Logout</button>
+      <% } else { %>
+        <!-- User is not logged in -->
+        <button onclick="window.location='/login'" class="btn btn-primary btn-lg px-4 gap-3">Login</button>
+        <button onclick="window.location='/signup'" class="btn btn-outline-secondary btn-lg px-4">Sign Up</button>
+        <% } %>
+  </div>
+
+  <%- include("templates/footer") %>

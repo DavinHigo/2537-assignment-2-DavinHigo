@@ -67,14 +67,14 @@ async function connectToMongo() {
         //members area 
         app.get('/members', (req, res) => {
             //create img path
-                let num = getRandomInt(3);
-                let img = `/${num + 1}.jpg`;
+            let num = getRandomInt(3);
+            let img = `/${num + 1}.jpg`;
 
             if (req.session && req.session.user) {
 
-                
+
                 const { username } = req.session.user;
-                res.render('members', {img, username});
+                res.render('members', { img, username });
             } else {
                 res.redirect('/');
             }
@@ -108,7 +108,7 @@ async function connectToMongo() {
             });
 
             try {
-                await schema.validateAsync({ username, email, password });
+                await schema.validateAsync({ username, email, password }); // Validates username, email, password
             } catch (error) {
                 return res.status(401).send('All fields must be filled. <br><a href="/signup">Try again</a>');
             }
@@ -118,8 +118,9 @@ async function connectToMongo() {
 
             const usersCollection = client.db().collection('users');
             try {
-                await usersCollection.insertOne({ username, email, password: hashedPassword });
-                req.session.user = { username, email }; // Store user in session
+                // Save user with default type 'user'
+                await usersCollection.insertOne({ username, email, password: hashedPassword, type: 'user' });
+                req.session.user = { username, email, type: 'user' }; // Store user in session with type 'user'
                 res.redirect('/members'); // Redirect to members area
             } catch (err) {
                 console.error("Error registering user:", err);
@@ -132,9 +133,6 @@ async function connectToMongo() {
             res.render('login');
         });
 
-        app.get('/test', (req, res) => {
-            res.render('images');
-        });
 
         app.post('/login', async (req, res) => {
             const { email, password } = req.body;
@@ -146,7 +144,7 @@ async function connectToMongo() {
             });
 
             try {
-                await schema.validateAsync({ email, password });
+                await schema.validateAsync({ email, password }); // Validates email and password
             } catch (error) {
                 return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
             }
@@ -167,9 +165,14 @@ async function connectToMongo() {
                 return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
             }
 
-            // If login is successful, store user in session and redirect
-            req.session.user = { username: user.username };
+            // If login is successful, store user in session with type 'user' and redirect
+            req.session.user = { username: user.username, email: user.email, type: 'user' };
             return res.redirect('/members');
+        });
+
+
+        app.get('/admin', (req, res) => {
+            res.render('admin');
         });
 
         // Route for handling 404 Not Found
