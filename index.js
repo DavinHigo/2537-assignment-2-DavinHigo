@@ -10,8 +10,9 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// Load environment variables from .env file
 require('dotenv').config();
+
+app.set("view engine", "ejs");
 
 const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI;
@@ -49,24 +50,14 @@ async function connectToMongo() {
         app.use(express.urlencoded({ extended: false }));
         app.use(express.static(path.join(__dirname, 'public')));
 
-        // session authentication
         app.get('/', (req, res) => {
-            if (req.session && req.session.user) {
-                // User is logged in
-                const { username } = req.session.user;
-                res.send(`
-      <p>Hello, ${username}!</p>
-      <button onclick="window.location='/members'">Members Area</button>
-      <button onclick="window.location='/logout'">Logout</button>
-    `);
-            } else {
-                // User is not logged in
-                res.send(`
-      <button onclick="window.location='/signup'">Sign Up</button>
-      <button onclick="window.location='/login'">Login</button>
-    `);
-            }
+            // Pass user data to the template (if user is logged in)
+            const user = req.session && req.session.user;
+
+            // Render the 'index' template with dynamic data
+            res.render('index', { user });
         });
+
 
         //random number generator
         function getRandomInt(max) {
@@ -75,18 +66,15 @@ async function connectToMongo() {
 
         //members area 
         app.get('/members', (req, res) => {
-            if (req.session && req.session.user) {
-
-                //create img path
+            //create img path
                 let num = getRandomInt(3);
                 let img = `/${num + 1}.jpg`;
 
+            if (req.session && req.session.user) {
+
+                
                 const { username } = req.session.user;
-                res.send(`
-      <h1>Hello, ${username}.</h1>
-      <img src="${img}" alt="Random Image" style="max-width: 500px; max-height: 500px; width: auto; height: auto;">
-      <br><button onclick="window.location='/logout'">Logout</button>
-    `);
+                res.render('members', {img, username});
             } else {
                 res.redirect('/');
             }
@@ -105,15 +93,7 @@ async function connectToMongo() {
 
         // Route for rendering signup form
         app.get('/signup', (req, res) => {
-            res.send(`
-                <h1>Sign Up</h1>
-                <form action="/signup" method="POST">
-                <input type="text" name="username" placeholder="Username"><br>
-                <input type="email" name="email" placeholder="Email"><br>
-                <input type="password" name="password" placeholder="Password"><br>
-                <button type="submit">Sign Up</button>
-                </form>
-            `);
+            res.render('signup');
         });
 
         // signup form
@@ -149,14 +129,11 @@ async function connectToMongo() {
 
         // Route for rendering login form
         app.get('/login', (req, res) => {
-            res.send(`
-        <h1>Login</h1>
-        <form action="/login" method="POST">
-          <input type="email" name="email" placeholder="Email">
-          <input type="password" name="password" placeholder="Password">
-          <button type="submit">Login</button>
-        </form>
-      `);
+            res.render('login');
+        });
+
+        app.get('/test', (req, res) => {
+            res.render('images');
         });
 
         app.post('/login', async (req, res) => {
@@ -195,11 +172,9 @@ async function connectToMongo() {
             return res.redirect('/members');
         });
 
-
-
         // Route for handling 404 Not Found
         app.get('*', (req, res) => {
-            res.status(404).send('Page not found - 404');
+            res.status(404).render('error'); // Render the 'error404.ejs' template
         });
 
         // Start the server

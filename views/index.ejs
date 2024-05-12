@@ -1,0 +1,10 @@
+<% if (user) { %>
+  <!-- User is logged in -->
+  <p>Hello, <%= user.username %>!</p>
+  <button onclick="window.location='/members'">Members Area</button>
+  <button onclick="window.location='/logout'">Logout</button>
+  <% } else { %>
+    <!-- User is not logged in -->
+    <button onclick="window.location='/signup'">Sign Up</button>
+    <button onclick="window.location='/login'">Login</button>
+    <% } %>
