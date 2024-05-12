@@ -18,6 +18,28 @@ const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI;
 const nodeSessionSecret = process.env.NODE_SESSION_SECRET;
 
+// Middleware to check if user is authenticated
+function isAuthenticated(req, res, next) {
+    if (req.session && req.session.user) {
+        // User is authenticated
+        next();
+    } else {
+        // User is not authenticated, redirect to login page
+        res.redirect('/login');
+    }
+}
+
+// Middleware to check if authenticated user is an admin
+function isAdmin(req, res, next) {
+    if (req.session && req.session.user && req.session.user.type === 'admin') {
+        // Authenticated user is an admin, proceed
+        next();
+    } else {
+        // Authenticated user is not an admin, show unauthorized error
+        res.status(403).send('Access Forbidden: You are not authorized to access this page.');
+    }
+}
+
 async function connectToMongo() {
     const client = new MongoClient(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -46,43 +68,31 @@ async function connectToMongo() {
             }
         }));
 
-        //middle ware for bady parsing and public folder
+        // Middleware for body parsing and public folder
         app.use(express.urlencoded({ extended: false }));
         app.use(express.static(path.join(__dirname, 'public')));
 
         app.get('/', (req, res) => {
             // Pass user data to the template (if user is logged in)
             const user = req.session && req.session.user;
-
-            // Render the 'index' template with dynamic data
             res.render('index', { user });
         });
 
-
-        //random number generator
+        // Generate a random number
         function getRandomInt(max) {
             return Math.floor(Math.random() * max);
         }
 
-        //members area 
-        app.get('/members', (req, res) => {
-            //create img path
-            let num = getRandomInt(3);
-            let img = `/${num + 1}.jpg`;
-
-            if (req.session && req.session.user) {
-
-
-                const { username } = req.session.user;
-                res.render('members', { img, username });
-            } else {
-                res.redirect('/');
-            }
+        app.get('/members', isAuthenticated, (req, res) => {
+            // Create image path
+            const num = getRandomInt(3);
+            const img = `/${num + 1}.jpg`;
+            const { username } = req.session.user;
+            res.render('members', { img, username });
         });
 
-        //logout
         app.get('/logout', (req, res) => {
-            //destroy session
+            // Destroy session
             req.session.destroy(err => {
                 if (err) {
                     console.error('Error destroying session:', err);
@@ -91,15 +101,11 @@ async function connectToMongo() {
             });
         });
 
-        // Route for rendering signup form
         app.get('/signup', (req, res) => {
             res.render('signup');
         });
 
-        // signup form
         app.post('/signup', async (req, res) => {
-            const { username, email, password } = req.body;
-
             // Validate input using Joi
             const schema = Joi.object({
                 username: Joi.string().alphanum().min(3).max(30).required(),
@@ -108,35 +114,27 @@ async function connectToMongo() {
             });
 
             try {
-                await schema.validateAsync({ username, email, password }); // Validates username, email, password
-            } catch (error) {
-                return res.status(401).send('All fields must be filled. <br><a href="/signup">Try again</a>');
-            }
+                const { username, email, password } = await schema.validateAsync(req.body);
 
-            // Hash the password using bcrypt
-            const hashedPassword = await bcrypt.hash(password, 10); // Use salt rounds of 10
+                // Hash the password using bcrypt
+                const hashedPassword = await bcrypt.hash(password, 10);
 
-            const usersCollection = client.db().collection('users');
-            try {
-                // Save user with default type 'user'
+                const usersCollection = client.db().collection('users');
                 await usersCollection.insertOne({ username, email, password: hashedPassword, type: 'user' });
-                req.session.user = { username, email, type: 'user' }; // Store user in session with type 'user'
-                res.redirect('/members'); // Redirect to members area
-            } catch (err) {
-                console.error("Error registering user:", err);
+
+                req.session.user = { username, email, type: 'user' };
+                res.redirect('/members');
+            } catch (error) {
+                console.error("Error registering user:", error);
                 res.status(500).send('Failed to register user');
             }
         });
 
-        // Route for rendering login form
         app.get('/login', (req, res) => {
             res.render('login');
         });
 
-
         app.post('/login', async (req, res) => {
-            const { email, password } = req.body;
-
             // Validate input using Joi
             const schema = Joi.object({
                 email: Joi.string().email().required(),
@@ -144,38 +142,36 @@ async function connectToMongo() {
             });
 
             try {
-                await schema.validateAsync({ email, password }); // Validates email and password
+                const { email, password } = await schema.validateAsync(req.body);
+
+                const usersCollection = client.db().collection('users');
+                const user = await usersCollection.findOne({ email });
+
+                if (!user || !(await bcrypt.compare(password, user.password))) {
+                    return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
+                }
+
+                req.session.user = { username: user.username, email: user.email, type: user.type };
+                return res.redirect('/members');
             } catch (error) {
-                return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
+                console.error("Error logging in:", error);
+                res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
             }
-
-            const usersCollection = client.db().collection('users');
-            const user = await usersCollection.findOne({ email });
-
-            if (!user) {
-                console.log('User not found');
-                return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
-            }
-
-            // Compare hashed password with provided password using bcrypt
-            const passwordMatch = await bcrypt.compare(password, user.password);
-
-            if (!passwordMatch) {
-                console.log('Incorrect password');
-                return res.status(401).send('Invalid email/password. <br><a href="/login">Try again</a>');
-            }
-
-            // If login is successful, store user in session with type 'user' and redirect
-            req.session.user = { username: user.username, email: user.email, type: 'user' };
-            return res.redirect('/members');
         });
 
-
-        app.get('/admin', (req, res) => {
-            res.render('admin');
+        // Restricted route for admin panel
+        app.get('/admin', isAuthenticated, isAdmin, async (req, res) => {
+            try {
+                const usersCollection = client.db().collection('users');
+                const users = await usersCollection.find().toArray();
+                res.render('admin', { users });
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                res.status(500).send('Internal Server Error');
+            }
         });
 
-        // Route for handling 404 Not Found
+        // Handle 404 Not Found
         app.get('*', (req, res) => {
             res.status(404).render('error'); // Render the 'error404.ejs' template
         });

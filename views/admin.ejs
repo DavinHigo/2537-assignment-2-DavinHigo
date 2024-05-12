@@ -1,2 +1,15 @@
-  <%- include("templates/Header") %>  
-<%- include("templates/footer") %>
+<!-- admin.ejs -->
+
+<%- include("templates/Header") %>
+
+<div>
+    <br>
+    <h2 class="text-center">Users</h2>
+    <ul>
+        <% users.forEach(user => { %>
+            <%- include("templates/users.ejs", { user: user }) %> <!-- Include users.ejs for each user -->
+        <% }); %>
+    </ul>
+</div>
+
+<%- include("templates/Footer") %>
