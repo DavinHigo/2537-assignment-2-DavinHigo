@@ -29,6 +29,18 @@ function isAuthenticated(req, res, next) {
     }
 }
 
+function isAdmin(req, res, next) {
+    const user = req.session && req.session.user;
+    if (user && user.type === 'admin') {
+        // User is an admin, proceed to the next middleware
+        next();
+    } else {
+        // User is not authorized, respond with 403 Forbidden
+        res.status(403).render('403', { user: null });
+    }
+}
+
+
 async function connectToMongo() {
     const client = new MongoClient(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -158,7 +170,7 @@ async function connectToMongo() {
             }
         });
 
-        app.get('/admin', (req, res) => {
+        app.get('/admin', isAuthenticated, isAdmin, (req, res) => {
             const user = req.user; // Assuming req.user contains the logged-in user object
 
             // Check if there's a logged-in user and if the user is an admin
