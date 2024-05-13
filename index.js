@@ -29,17 +29,6 @@ function isAuthenticated(req, res, next) {
     }
 }
 
-// Middleware to check if authenticated user is an admin
-function isAdmin(req, res, next) {
-    if (req.session && req.session.user && req.session.user.type === 'admin') {
-        // Authenticated user is an admin, proceed
-        next();
-    } else {
-        // Authenticated user is not an admin, show unauthorized error
-        res.status(403).send('Access Forbidden: You are not authorized to access this page.');
-    }
-}
-
 async function connectToMongo() {
     const client = new MongoClient(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -159,14 +148,55 @@ async function connectToMongo() {
             }
         });
 
-        // Restricted route for admin panel
-        app.get('/admin', isAuthenticated, isAdmin, async (req, res) => {
+        app.get('/admin', isAuthenticated, async (req, res) => {
             try {
                 const usersCollection = client.db().collection('users');
                 const users = await usersCollection.find().toArray();
-                res.render('admin', { users });
+
+                // Get current user data from session (if logged in)
+                const user = req.session && req.session.user;
+
+                res.render('admin', { users, user });
             } catch (error) {
                 console.error('Error fetching users:', error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
+
+        app.post('/admin/promote/:userName', async (req, res) => {
+            try {
+                const { userName } = req.params;
+                const usersCollection = req.db.collection('users');
+
+                // Update user type to 'admin' based on user name
+                await usersCollection.updateOne(
+                    { name: userName },
+                    { $set: { type: 'admin' } }
+                );
+
+                res.redirect('/admin'); // Redirect back to the admin page
+            } catch (error) {
+                console.error('Error promoting user:', error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
+        // Route to handle demoting a user to regular user
+        app.post('/admin/demote/:userName', async (req, res) => {
+            try {
+                const { userName } = req.params;
+                const usersCollection = req.db.collection('users');
+
+                // Update user type to 'user' based on user name
+                await usersCollection.updateOne(
+                    { name: userName },
+                    { $set: { type: 'user' } }
+                );
+
+                res.redirect('/admin'); // Redirect back to the admin page
+            } catch (error) {
+                console.error('Error demoting user:', error);
                 res.status(500).send('Internal Server Error');
             }
         });

@@ -3,10 +3,15 @@
         <div class="col-md-6 d-flex align-items-center" style="font-size: larger;">
             <!-- Text Element 1 -->
             <p  class="mb-0 spacer"><%= user.username %> (<%= user.type %>)</p>
-            <!-- Button 1 -->
-            <button class="btn btn-primary mr-2 mb-0 spacer">Button 1</button>
-            <!-- Button 2 -->
-            <button class="btn btn-secondary mb-0 spacer">Button 2</button>
+            <!-- Promote Button (send POST request to /admin/promote/:userName) -->
+            <form action="/admin/promote/<%= user.username %>" method="POST">
+                <button type="submit" class="btn btn-primary mr-2 mb-0 spacer">Promote to admin</button>
+            </form>
+            
+            <!-- Demote Button (send POST request to /admin/demote/:userName) -->
+            <form action="/admin/demote/<%= user.username %>" method="POST">
+                <button type="submit" class="btn btn-secondary spacer">Demote to user</button>
+            </form>
         </div>
     </div>
 </div>

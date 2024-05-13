@@ -8,11 +8,11 @@
       <!-- User is logged in -->
       <h1>Hello, <%= user.username %>!</h1>
       <button onclick="window.location='/members'" class="btn btn-primary btn-lg px-4 gap-3">Members Area</button>
-      <button onclick="window.location='/logout'" class="btn btn-outline-secondary btn-lg px-4">Logout</button>
+      <button onclick="window.location='/logout'" class="btn btn-secondary btn-lg px-4">Logout</button>
       <% } else { %>
         <!-- User is not logged in -->
         <button onclick="window.location='/login'" class="btn btn-primary btn-lg px-4 gap-3">Login</button>
-        <button onclick="window.location='/signup'" class="btn btn-outline-secondary btn-lg px-4">Sign Up</button>
+        <button onclick="window.location='/signup'" class="btn btn-secondary btn-lg px-4">Sign Up</button>
         <% } %>
   </div>
 
