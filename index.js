@@ -91,7 +91,12 @@ async function connectToMongo() {
         });
 
         app.get('/signup', (req, res) => {
-            res.render('signup');
+            if (req.session && req.session.user) {
+                res.redirect('/');
+            }
+            else {
+                res.render('signup');
+            }
         });
 
         app.post('/signup', async (req, res) => {
@@ -120,7 +125,12 @@ async function connectToMongo() {
         });
 
         app.get('/login', (req, res) => {
-            res.render('login');
+            if (req.session && req.session.user) {
+                res.redirect('/');
+            }
+            else {
+                res.render('login');
+            }
         });
 
         app.post('/login', async (req, res) => {
@@ -167,13 +177,17 @@ async function connectToMongo() {
         app.post('/admin/promote/:userName', async (req, res) => {
             try {
                 const { userName } = req.params;
-                const usersCollection = req.db.collection('users');
+                const usersCollection = client.db().collection('users');
 
                 // Update user type to 'admin' based on user name
-                await usersCollection.updateOne(
-                    { name: userName },
+                const result = await usersCollection.updateOne(
+                    { username: userName },
                     { $set: { type: 'admin' } }
                 );
+
+                if (result.modifiedCount === 1) {
+                    console.log(`User '${userName}' promoted to admin`);
+                }
 
                 res.redirect('/admin'); // Redirect back to the admin page
             } catch (error) {
@@ -186,13 +200,17 @@ async function connectToMongo() {
         app.post('/admin/demote/:userName', async (req, res) => {
             try {
                 const { userName } = req.params;
-                const usersCollection = req.db.collection('users');
+                const usersCollection = client.db().collection('users');
 
                 // Update user type to 'user' based on user name
-                await usersCollection.updateOne(
-                    { name: userName },
+                const result = await usersCollection.updateOne(
+                    { username: userName },
                     { $set: { type: 'user' } }
                 );
+
+                if (result.modifiedCount === 1) {
+                    console.log(`User '${userName}' demoted to user`);
+                }
 
                 res.redirect('/admin'); // Redirect back to the admin page
             } catch (error) {
