@@ -158,20 +158,20 @@ async function connectToMongo() {
             }
         });
 
-        app.get('/admin', isAuthenticated, async (req, res) => {
-            try {
-                const usersCollection = client.db().collection('users');
-                const users = await usersCollection.find().toArray();
+        app.get('/admin', (req, res) => {
+            const user = req.user; // Assuming req.user contains the logged-in user object
 
-                // Get current user data from session (if logged in)
-                const user = req.session && req.session.user;
-
-                res.render('admin', { users, user });
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                res.status(500).send('Internal Server Error');
+            // Check if there's a logged-in user and if the user is an admin
+            if (user && user.type === 'admin') {
+                // Render admin page with user data
+                res.render('admin', { user: user, users: userList });
+            } else {
+                // If user is not logged in or is not an admin, send 403 Forbidden status
+                res.status(403).render('admin', { user: null }); // Pass null user to template
             }
         });
+
+
 
 
         app.post('/admin/promote/:userName', async (req, res) => {
