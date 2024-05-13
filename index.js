@@ -178,7 +178,7 @@ async function connectToMongo() {
                 // Get current user data from session (if logged in)
                 const user = req.session && req.session.user;
 
-                res.render('admin', { users, user });
+                res.render('admin', { users });
             } catch (error) {
                 console.error('Error fetching users:', error);
                 res.status(500).send('Internal Server Error');

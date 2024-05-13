@@ -1,20 +1,11 @@
 <%- include("templates/Header") %>
-    <% if (user && user.type==='admin' ) { %>
-        <div>
-            <br>
-            <h2 class="text-center">Users</h2>
-            <ul>
-                <% users.forEach(user=> { %>
-                    <%- include("templates/users.ejs", { user: user }) %> <!-- Include users.ejs for each user -->
-                        <% }); %>
-            </ul>
-        </div>
-        <% } else { %>
-            <!-- User is not logged in or is not an admin -->
-            <br>
-            <div class="text-center">
-                <h3>Access denied. You must be logged in as an admin to view this page.</h3>
-                    <p><a href="/" style="color: yellow;">Go back to the home page</a></p>
-            </div>
-            <%}%>
-                <%- include("templates/Footer") %>
+    <div>
+        <br>
+        <h2 class="text-center">Users</h2>
+        <ul>
+            <% users.forEach(user=> { %>
+                <%- include("templates/users.ejs", { user: user }) %> <!-- Include users.ejs for each user -->
+                    <% }); %>
+        </ul>
+    </div>
+    <%- include("templates/Footer") %>
