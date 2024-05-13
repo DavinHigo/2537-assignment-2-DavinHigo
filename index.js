@@ -167,7 +167,7 @@ async function connectToMongo() {
                 res.render('admin', { user: user, users: userList });
             } else {
                 // If user is not logged in or is not an admin, send 403 Forbidden status
-                res.status(403).render('admin', { user: null }); // Pass null user to template
+                res.status(403).render('403', { user: null }); // Pass null user to template
             }
         });
 
